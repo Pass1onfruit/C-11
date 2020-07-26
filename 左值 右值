@@ -64,3 +64,5 @@ T& operator[] (sizet index)->改变返回对象+ vector<T& operator=(const vecto
 右值引用应用：
 1、移动构造和移动赋值
 2、容器的插入
+
+一般需要深拷贝的类才使用移动构造
