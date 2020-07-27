@@ -1,0 +1,59 @@
+头文件< thread >中声明了 std::thread 线程类
+
+C++线程库通过构造一个线程对象来启动一个线程，该线程对象中就包含了线程运行时的上下文环境，比如：
+线程函数、线程栈、线程起始状态等以及线程ID等，所有操作全部封装在一起，最后在底层统一传递给 _beginthreadex() 创建线程函数来实现 (注意：_beginthreadex是windows中创建线程的底层c函数)
+std::thread()创建一个新的线程可以接受任意的可调用对象类型（带参数或者不带参数），包括lambda表达 式（带变量捕获或者不带），函数，函数对象，以及函数指针
+
+void fun()
+{
+	cout << "A new thread!" << endl;
+}
+int main()
+{
+	thread t(fun);
+	t.join();
+	cout << "Main thread!" << endl;
+	return 0;
+}
+
+// 使用lambda表达式作为线程函数创建线程
+int main()
+{
+	int n1 = 500;
+	int n2 = 600;
+	thread t([&](int addNum) {
+		n1 += addNum;
+		n2 += addNum;
+		}, 500);
+
+	t.join();
+	std::cout << n1 << ' ' << n2 << std::endl;
+	return 0;
+}
+
+线程结束：
+
+join()
+会主动地等待线程的终止
+在调用进程中join()，当新的线程终止时，join()会清理相关的资源，然后返回，调用线程再继续向下执行
+由于join()清理了线程的相关资源，thread对象与已销毁的 线程就没有关系了，因此一个线程的对象每次只能使用一次join()，当你调用的join()之后joinable()就将返回false了
+void foo()
+{
+	this_thread::sleep_for(std::chrono::seconds(1));
+}
+int main()
+{
+	thread t(foo);
+	cout << "before join, joinable=" << t.joinable() << std::endl;
+
+	t.join();
+	cout << "after join, joinable=" << t.joinable() << endl;
+	return 0;
+}
+
+detach()
+会从调用线程中分理出新的线程，之后不能再与新线程交互
+就像是你和你女朋友分手，那之后你们就不会再有联系（交互）了，而她的之后消费的各种资源也就不需要你去埋单了（清理资源）
+此时调用joinable()必然是返回false，分离的线程会在后台运行，其所有权和控制权将会交给c++运行库
+同时，C++运行库保证，当线程退出时，其相关资源的能够正确的回收
+必须在thread对象销毁之前做出选择，这是因为线程可能在你加入或分离线程之前，就已经结束了， 之后如果再去分离它，线程可能会在thread对象销毁之后继续运行下去
