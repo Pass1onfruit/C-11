@@ -1,0 +1,38 @@
+对于内存泄漏的事先预防
+
+RTTI运行时类型识别
+RAII管理资源，获取资源立即初始化
+像指针一样使用
+
+
+
+拷贝构造时
+普通指针被拷贝后，一个就是指向同一资源的
+所以智能指针就应该是浅拷贝的
+
+
+C++98中  auto_ptr
+
+// 一旦发生拷贝，就将ap中资源转移到当前对象中，然后另ap与其所管理资源断开联系，
+// 这样就解决了一块空间被多个对象使用而造成程序奔溃问题
+AutoPtr(AutoPtr<T>& ap)
+	: _ptr(ap._ptr)
+{
+	ap._ptr = NULL;
+}
+//等于移交管理权
+//悬空，访问会崩溃
+
+C++11中  unique_ptr
+
+//简单粗暴，直接不允许拷贝，也不准赋值
+// unique_ptr的防拷贝方式：delete
+UniquePtr(UniquePtr<T> const&) = delete;
+UniquePtr& operator=(UniquePtr<T> const&) = delete;
+
+
+C++11中  shared_ptr
+
+//解决方法：引用计数（维护在堆上，不能使用static变量）
+//记录有多少个对象管理这块资源，智能指针析构时，检查计数
+//如果为 1 则表示直接是最后一个管理的对象，释放
