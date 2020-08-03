@@ -1,0 +1,87 @@
+//对象的三种创建方式
+class HeapOnly
+{
+public:
+	HeapOnly()
+	{
+		cout << "HeapOnly()" << endl;
+	}
+};
+int main()
+{
+	HeapOnly hpl;//楼
+	static HeapOnly hp2;//数据段
+	HeapOnly* p = new HeapOnly;//堆
+	return 0;
+}
+
+//只能在堆上创建的类
+class HeapOnly
+{
+public:
+	static HeapOnly* GetHeapObj()
+	{
+		HeapOnly* p = new HeapOnly;//只能在堆上
+		return p;
+	}
+private:
+	HeapOnly()
+	{
+		cout << "HeapOnly()" << endl;
+	}
+	//C++98 拷贝构造只声明不实现
+	//HeapOnly(const HeapOnly& hp);
+	//C++11
+	HeapOnly(const HeapOnly& hp) = delete;
+};
+int main()
+{
+	//HeapOnly hpl;//楼
+	//static HeapOnly hp2;//数据段
+	//HeapOnly* p = new HeapOnly;//堆
+	HeapOnly* p1 = HeapOnly::GetHeapObj();//只能在堆上
+
+	return 0;
+}
+
+//只能在栈上创建的类
+class StackOnly
+{
+public:
+	static StackOnly GetGtackObj()
+	{
+		return StackOnly();
+	}
+private:
+	StackOnly()
+	{
+		cout << "StackOnly()" << endl;
+	}
+
+};
+
+//一个不能被拷贝的类（防拷贝）
+class CopyBan
+{
+private:
+	CopyBan(const CopyBan&) = delete;
+	CopyBan& operator=(const CopyBan&) = delete;
+};
+
+//不能被继承的类
+//不能被继承，私有子类不可见，子类的构造函数必须调用父类的构造函数
+//C++98
+class NonInherit
+{
+public:
+	static NonInherit GetInherit()
+	{
+		return NonInherit();
+	}
+private:
+	NonInherit()
+	{}
+};
+//C++11 //更加彻底
+class NonInherit final //加final被定义为最终类
+{};
