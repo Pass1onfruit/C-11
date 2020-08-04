@@ -1,3 +1,85 @@
+单例模式（唯一的实例对象）
+
+单例 Singleton 是设计模式的一种，其特点是只提供唯一一个类的实例,具有全局变量的特点，在任何位置都可以通过接口获取到那个唯一实例
+
+饿汉模式：
+一上来就要吃，一开始（main函数之前）就创建对象
+优点：实现简洁
+缺点：因为在main函数之前初始化实例，如果程序中单例较多，程序启动慢
+如果两个单例类有依赖关系（先启动，后启动），无法保证启动顺序
+
+class Singleton 
+{
+public:
+	static Singleton GetInstance()
+	{
+		return _sInst;
+	}
+private:
+	 //构造函数私有化
+	Singleton()
+	{}
+	Singleton(const Singleton&) = delete;
+	static Singleton _sInst;
+};
+Singleton Singleton::_sInst; // main函数之前就创建初始化这个实例对象
+静态数据成员，其实体在main()函数开始之前就已经在全局数据段中诞生了
+多线程来调不会有线程安全问题
+因为实例对象的创建在main函数之前，只会才有线程
+线程只会多读，不会再初始化（写）这个对象
+
+
+懒汉模式：
+拖延，最后一刻（第一次调用GetInstance()时）才创建对象
+优点：
+第一次使用实例对象时创建对象，使进程启动无负载，多个单例实例启动顺序自由控制
+缺点：复杂
+
+class Singleton
+{
+public:
+	static Singleton GetInstance()
+	{
+		//_smtx.lock();
+		if (_spInst == nullptr)
+		{
+			_spInst = new Singleton;
+		}
+		//_smtx.unlock();
+		return *_spInst;
+	}
+private:
+	//构造函数私有化
+	Singleton()
+	{}
+	Singleton(const Singleton&);
+	static Singleton* _spInst;
+	//static mutex _smtx;
+};
+Singleton* Singleton::_spInst = nullptr; //
+//mutex Singleton::_smtx;
+不是线程安全的，如果两个线程同时第一次调GetInstance()，就会new两个对象，其中一个会把另一个覆盖掉，可能会导致数据的丢失
+但是上锁会有效率的问题，会有线程切换的代价，互斥锁会把进入的线程进入睡眠，再唤醒
+
+解决方法：双检查
+	static Singleton GetInstance()
+	{
+		if (_spInst == nullptr)  //为了效率
+		{//后面的每次调用通过这个检查,对象不为空
+			//直接返回了，不用加锁解锁
+			_smtx.lock();
+			if (_spInst == nullptr)  //为了线程安全
+			{//第一个线程解锁以后，第二个线程锁的线程进来
+			//对象已经不为空就直接解锁，返回对象
+				_spInst = new Singleton;
+			}
+			_smtx.unlock();
+		}
+		return *_spInst;
+	}
+
+
+
 //对象的三种创建方式
 class HeapOnly
 {
