@@ -78,6 +78,27 @@ Singleton* Singleton::_spInst = nullptr; //
 		return *_spInst;
 	}
 
+最推荐的懒汉模式：
+class Singleton
+{
+public:
+	~Singleton()
+	{}
+	Singleton(const Singleton&) = delete;
+	Singleton& operator=(const Singleton&) = delete;
+	static Singleton& get_instance() 
+	{
+		static Singleton instance;
+		return instance;
+	}
+private:
+	Singleton() 
+	{}
+};
+
+
+
+
 
 
 //对象的三种创建方式
